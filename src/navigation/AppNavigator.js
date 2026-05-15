@@ -8,6 +8,7 @@ import ManageLedgers from '../screens/admin/ManageLedgers';
 import ReceivePayment from '../screens/admin/ReceivePayment';
 import ManageProducts from '../screens/admin/ManageProducts';
 import CreateInvoice from '../screens/admin/CreateInvoice';
+import ReportsDashboard from '../screens/admin/ReportsDashboard';
 import { theme } from '../theme';
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,7 @@ export default function AppNavigator() {
         <Stack.Screen name="ReceivePayment" component={ReceivePayment} />
         <Stack.Screen name="ManageProducts" component={ManageProducts} />
         <Stack.Screen name="CreateInvoice" component={CreateInvoice} />
+        <Stack.Screen name="ReportsDashboard" component={ReportsDashboard} />
       </Stack.Navigator>
     </NavigationContainer>
   );

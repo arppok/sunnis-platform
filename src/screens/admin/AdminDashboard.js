@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { Users, FileText, TrendingUp, Settings, LogOut } from 'lucide-react-native';
+import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2 } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard({ navigation }) {
@@ -69,6 +69,7 @@ export default function AdminDashboard({ navigation }) {
           <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Create Invoice" onPress={() => navigation.navigate('CreateInvoice')} />
           <ActionCard icon={<TrendingUp color={theme.colors.primary} size={32} />} title="Receive Payment" onPress={() => navigation.navigate('ReceivePayment')} />
           <ActionCard icon={<Settings color={theme.colors.primary} size={32} />} title="Manage Store" onPress={() => navigation.navigate('ManageProducts')} />
+          <ActionCard icon={<BarChart2 color={theme.colors.primary} size={32} />} title="Sales Reports" onPress={() => navigation.navigate('ReportsDashboard')} />
         </View>
 
         <View style={styles.recentActivity}>
