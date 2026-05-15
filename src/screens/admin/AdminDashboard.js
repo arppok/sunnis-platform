@@ -1,9 +1,44 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
 import { Users, FileText, TrendingUp, Settings, LogOut } from 'lucide-react-native';
+import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard({ navigation }) {
+  const [ledgers, setLedgers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [ledgersResponse, ordersResponse] = await Promise.all([
+        supabase.from('ledgers').select('*'),
+        supabase.from('orders').select('*, ledgers(name)').order('created_at', { ascending: false }).limit(5)
+      ]);
+
+      if (ledgersResponse.data) setLedgers(ledgersResponse.data);
+      if (ordersResponse.data) setOrders(ordersResponse.data);
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  const totalPending = ledgers.reduce((sum, ledger) => sum + Number(ledger.balance), 0);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scroll}>
@@ -20,11 +55,11 @@ export default function AdminDashboard({ navigation }) {
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Total Pending</Text>
-            <Text style={styles.statValue}>$45,230</Text>
+            <Text style={styles.statValue}>${totalPending.toFixed(2)}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Active Ledgers</Text>
-            <Text style={styles.statValue}>128</Text>
+            <Text style={styles.statValue}>{ledgers.length}</Text>
           </View>
         </View>
 
@@ -37,10 +72,16 @@ export default function AdminDashboard({ navigation }) {
         </View>
 
         <View style={styles.recentActivity}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <ActivityItem title="Payment Received" subtitle="John Doe paid $500" time="2m ago" />
-          <ActivityItem title="Invoice Sent" subtitle="Sent to Tech Corp via WhatsApp" time="1h ago" />
-          <ActivityItem title="New Ledger Added" subtitle="Sarah Smith registered" time="3h ago" />
+          <Text style={styles.sectionTitle}>Recent Orders</Text>
+          {orders.map(order => (
+            <ActivityItem 
+              key={order.id} 
+              title={`Order for ${order.ledgers?.name || 'Unknown'}`} 
+              subtitle={`Amount: $${order.total_amount}`} 
+              time={new Date(order.created_at).toLocaleDateString()} 
+            />
+          ))}
+          {orders.length === 0 && <Text style={{color: 'gray'}}>No recent orders. Add a ledger and an order first!</Text>}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -96,7 +137,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: theme.colors.primary + '15', // 15% opacity
+    backgroundColor: theme.colors.primary + '15',
     padding: theme.spacing.l,
     borderRadius: theme.borderRadius.l,
     borderWidth: 1,
