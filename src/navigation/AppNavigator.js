@@ -10,6 +10,8 @@ import ManageProducts from '../screens/admin/ManageProducts';
 import CreateInvoice from '../screens/admin/CreateInvoice';
 import ReportsDashboard from '../screens/admin/ReportsDashboard';
 import ManageInvoices from '../screens/admin/ManageInvoices';
+import PendingOrders from '../screens/admin/PendingOrders';
+import CheckoutScreen from '../screens/user/CheckoutScreen';
 import { theme } from '../theme';
 
 const Stack = createNativeStackNavigator();
@@ -39,6 +41,8 @@ export default function AppNavigator() {
         <Stack.Screen name="CreateInvoice" component={CreateInvoice} />
         <Stack.Screen name="ReportsDashboard" component={ReportsDashboard} />
         <Stack.Screen name="ManageInvoices" component={ManageInvoices} />
+        <Stack.Screen name="PendingOrders" component={PendingOrders} />
+        <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
