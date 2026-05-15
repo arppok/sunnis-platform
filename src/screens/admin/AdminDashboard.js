@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2, Clock, Truck, Package } from 'lucide-react-native';
+import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2, Clock, Truck, Package, Zap, DollarSign } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard({ navigation }) {
@@ -79,6 +79,8 @@ export default function AdminDashboard({ navigation }) {
           <ActionCard icon={<Package color={theme.colors.primary} size={32} />} title="Warehouse Inventory" onPress={() => navigation.navigate('RawMaterials')} />
           <ActionCard icon={<Truck color={theme.colors.primary} size={32} />} title="Manage Vendors" onPress={() => navigation.navigate('ManageVendors')} />
           <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Purchase Entry" onPress={() => navigation.navigate('PurchaseEntry')} />
+          <ActionCard icon={<Zap color={theme.colors.primary} size={32} />} title="Log Production" onPress={() => navigation.navigate('ManufacturingEntry')} />
+          <ActionCard icon={<DollarSign color={theme.colors.primary} size={32} />} title="Costing Report" onPress={() => navigation.navigate('CostingReport')} />
         </View>
 
         <View style={styles.recentActivity}>

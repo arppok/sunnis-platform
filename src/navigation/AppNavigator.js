@@ -14,6 +14,8 @@ import PendingOrders from '../screens/admin/PendingOrders';
 import ManageVendors from '../screens/admin/ManageVendors';
 import RawMaterials from '../screens/admin/RawMaterials';
 import PurchaseEntry from '../screens/admin/PurchaseEntry';
+import ManufacturingEntry from '../screens/admin/ManufacturingEntry';
+import CostingReport from '../screens/admin/CostingReport';
 import CheckoutScreen from '../screens/user/CheckoutScreen';
 import { theme } from '../theme';
 
@@ -48,6 +50,8 @@ export default function AppNavigator() {
         <Stack.Screen name="ManageVendors" component={ManageVendors} />
         <Stack.Screen name="RawMaterials" component={RawMaterials} />
         <Stack.Screen name="PurchaseEntry" component={PurchaseEntry} />
+        <Stack.Screen name="ManufacturingEntry" component={ManufacturingEntry} />
+        <Stack.Screen name="CostingReport" component={CostingReport} />
         <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       </Stack.Navigator>
     </NavigationContainer>
