@@ -5,6 +5,7 @@ import LoginScreen from '../screens/LoginScreen';
 import AdminDashboard from '../screens/admin/AdminDashboard';
 import UserDashboard from '../screens/user/UserDashboard';
 import ManageLedgers from '../screens/admin/ManageLedgers';
+import ReceivePayment from '../screens/admin/ReceivePayment';
 import { theme } from '../theme';
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +30,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
         <Stack.Screen name="UserDashboard" component={UserDashboard} />
         <Stack.Screen name="ManageLedgers" component={ManageLedgers} />
+        <Stack.Screen name="ReceivePayment" component={ReceivePayment} />
       </Stack.Navigator>
     </NavigationContainer>
   );
