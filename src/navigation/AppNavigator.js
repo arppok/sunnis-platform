@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import AdminDashboard from '../screens/admin/AdminDashboard';
 import UserDashboard from '../screens/user/UserDashboard';
+import ManageLedgers from '../screens/admin/ManageLedgers';
 import { theme } from '../theme';
 
 const Stack = createNativeStackNavigator();
@@ -27,6 +28,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
         <Stack.Screen name="UserDashboard" component={UserDashboard} />
+        <Stack.Screen name="ManageLedgers" component={ManageLedgers} />
       </Stack.Navigator>
     </NavigationContainer>
   );

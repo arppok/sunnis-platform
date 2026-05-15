@@ -65,7 +65,7 @@ export default function AdminDashboard({ navigation }) {
 
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.grid}>
-          <ActionCard icon={<Users color={theme.colors.primary} size={32} />} title="Manage Ledgers" />
+          <ActionCard icon={<Users color={theme.colors.primary} size={32} />} title="Manage Ledgers" onPress={() => navigation.navigate('ManageLedgers')} />
           <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Invoices & Reports" />
           <ActionCard icon={<TrendingUp color={theme.colors.primary} size={32} />} title="Receive Payment" />
           <ActionCard icon={<Settings color={theme.colors.primary} size={32} />} title="App Settings" />
@@ -88,8 +88,8 @@ export default function AdminDashboard({ navigation }) {
   );
 }
 
-const ActionCard = ({ icon, title }) => (
-  <TouchableOpacity style={styles.actionCard}>
+const ActionCard = ({ icon, title, onPress }) => (
+  <TouchableOpacity style={styles.actionCard} onPress={onPress}>
     {icon}
     <Text style={styles.actionText}>{title}</Text>
   </TouchableOpacity>
