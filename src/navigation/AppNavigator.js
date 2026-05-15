@@ -11,6 +11,9 @@ import CreateInvoice from '../screens/admin/CreateInvoice';
 import ReportsDashboard from '../screens/admin/ReportsDashboard';
 import ManageInvoices from '../screens/admin/ManageInvoices';
 import PendingOrders from '../screens/admin/PendingOrders';
+import ManageVendors from '../screens/admin/ManageVendors';
+import RawMaterials from '../screens/admin/RawMaterials';
+import PurchaseEntry from '../screens/admin/PurchaseEntry';
 import CheckoutScreen from '../screens/user/CheckoutScreen';
 import { theme } from '../theme';
 
@@ -42,6 +45,9 @@ export default function AppNavigator() {
         <Stack.Screen name="ReportsDashboard" component={ReportsDashboard} />
         <Stack.Screen name="ManageInvoices" component={ManageInvoices} />
         <Stack.Screen name="PendingOrders" component={PendingOrders} />
+        <Stack.Screen name="ManageVendors" component={ManageVendors} />
+        <Stack.Screen name="RawMaterials" component={RawMaterials} />
+        <Stack.Screen name="PurchaseEntry" component={PurchaseEntry} />
         <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       </Stack.Navigator>
     </NavigationContainer>

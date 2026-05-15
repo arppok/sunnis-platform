@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2, Clock } from 'lucide-react-native';
+import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2, Clock, Truck, Package } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard({ navigation }) {
@@ -63,7 +63,7 @@ export default function AdminDashboard({ navigation }) {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>Sales & Customers</Text>
         <View style={styles.grid}>
           <ActionCard icon={<Clock color={theme.colors.primary} size={32} />} title="Consumer Orders" onPress={() => navigation.navigate('PendingOrders')} />
           <ActionCard icon={<Users color={theme.colors.primary} size={32} />} title="Manage Ledgers" onPress={() => navigation.navigate('ManageLedgers')} />
@@ -72,6 +72,13 @@ export default function AdminDashboard({ navigation }) {
           <ActionCard icon={<TrendingUp color={theme.colors.primary} size={32} />} title="Receive Payment" onPress={() => navigation.navigate('ReceivePayment')} />
           <ActionCard icon={<Settings color={theme.colors.primary} size={32} />} title="Manage Store" onPress={() => navigation.navigate('ManageProducts')} />
           <ActionCard icon={<BarChart2 color={theme.colors.primary} size={32} />} title="Sales Reports" onPress={() => navigation.navigate('ReportsDashboard')} />
+        </View>
+
+        <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Factory Operations</Text>
+        <View style={styles.grid}>
+          <ActionCard icon={<Package color={theme.colors.primary} size={32} />} title="Warehouse Inventory" onPress={() => navigation.navigate('RawMaterials')} />
+          <ActionCard icon={<Truck color={theme.colors.primary} size={32} />} title="Manage Vendors" onPress={() => navigation.navigate('ManageVendors')} />
+          <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Purchase Entry" onPress={() => navigation.navigate('PurchaseEntry')} />
         </View>
 
         <View style={styles.recentActivity}>
