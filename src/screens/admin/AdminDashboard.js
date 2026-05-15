@@ -66,9 +66,9 @@ export default function AdminDashboard({ navigation }) {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.grid}>
           <ActionCard icon={<Users color={theme.colors.primary} size={32} />} title="Manage Ledgers" onPress={() => navigation.navigate('ManageLedgers')} />
-          <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Invoices & Reports" />
+          <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Create Invoice" onPress={() => navigation.navigate('CreateInvoice')} />
           <ActionCard icon={<TrendingUp color={theme.colors.primary} size={32} />} title="Receive Payment" onPress={() => navigation.navigate('ReceivePayment')} />
-          <ActionCard icon={<Settings color={theme.colors.primary} size={32} />} title="App Settings" />
+          <ActionCard icon={<Settings color={theme.colors.primary} size={32} />} title="Manage Store" onPress={() => navigation.navigate('ManageProducts')} />
         </View>
 
         <View style={styles.recentActivity}>
