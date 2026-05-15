@@ -12,6 +12,7 @@ export default function ManageLedgers({ navigation }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [gst, setGst] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -38,15 +39,15 @@ export default function ManageLedgers({ navigation }) {
     
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('ledgers').insert([{ name, phone, email, balance: 0 }]);
+      const { error } = await supabase.from('ledgers').insert([{ name, phone, email, gst: gst.trim(), balance: 0 }]);
       if (error) throw error;
       
-      setName(''); setPhone(''); setEmail('');
+      setName(''); setPhone(''); setEmail(''); setGst('');
       await fetchLedgers();
       if (global.alert) alert('Ledger added successfully!');
     } catch (error) {
       console.error(error);
-      if (global.alert) alert('Failed to add ledger');
+      if (global.alert) alert('Failed to add ledger. Make sure the GST column is added to your database!');
     } finally {
       setIsSubmitting(false);
     }
@@ -79,6 +80,7 @@ export default function ManageLedgers({ navigation }) {
           <TextInput style={styles.input} placeholder="Full Name or Business" placeholderTextColor={theme.colors.textSecondary} value={name} onChangeText={setName} />
           <TextInput style={styles.input} placeholder="Phone Number" placeholderTextColor={theme.colors.textSecondary} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
           <TextInput style={styles.input} placeholder="Email (optional)" placeholderTextColor={theme.colors.textSecondary} value={email} onChangeText={setEmail} keyboardType="email-address" />
+          <TextInput style={styles.input} placeholder="GST Number (optional)" placeholderTextColor={theme.colors.textSecondary} value={gst} onChangeText={setGst} autoCapitalize="characters" />
           
           <TouchableOpacity style={styles.button} onPress={handleAddLedger} disabled={isSubmitting}>
             {isSubmitting ? <ActivityIndicator color="#fff" /> : (
@@ -97,6 +99,7 @@ export default function ManageLedgers({ navigation }) {
               <View style={{ flex: 1 }}>
                 <Text style={styles.ledgerName}>{ledger.name}</Text>
                 <Text style={styles.ledgerContact}>{ledger.phone || 'No phone'} | Balance: ${ledger.balance}</Text>
+                {ledger.gst ? <Text style={styles.ledgerContact}>GST: {ledger.gst}</Text> : null}
               </View>
               <TouchableOpacity onPress={() => handleDelete(ledger.id)}>
                 <Trash2 color={theme.colors.danger} size={20} />
