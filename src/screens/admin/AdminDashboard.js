@@ -83,6 +83,13 @@ export default function AdminDashboard({ navigation }) {
           <ActionCard icon={<DollarSign color={theme.colors.primary} size={32} />} title="Costing Report" onPress={() => navigation.navigate('CostingReport')} />
         </View>
 
+        <Text style={[styles.sectionTitle, { marginTop: 20 }]}>HR & Bookkeeping</Text>
+        <View style={styles.grid}>
+          <ActionCard icon={<Users color={theme.colors.primary} size={32} />} title="Manage Staff" onPress={() => navigation.navigate('ManageEmployees')} />
+          <ActionCard icon={<Clock color={theme.colors.primary} size={32} />} title="Attendance & Wages" onPress={() => navigation.navigate('AttendanceWages')} />
+          <ActionCard icon={<DollarSign color={theme.colors.primary} size={32} />} title="Factory Expenses" onPress={() => navigation.navigate('FactoryExpenses')} />
+        </View>
+
         <View style={styles.recentActivity}>
           <Text style={styles.sectionTitle}>Recent Orders</Text>
           {orders.map(order => (
