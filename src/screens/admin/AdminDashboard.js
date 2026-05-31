@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 export default function AdminDashboard({ navigation }) {
   const [ledgers, setLedgers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,13 +16,19 @@ export default function AdminDashboard({ navigation }) {
 
   const fetchData = async () => {
     try {
-      const [ledgersResponse, ordersResponse] = await Promise.all([
+      const [ledgersResponse, ordersResponse, rawMatsResponse] = await Promise.all([
         supabase.from('ledgers').select('*'),
-        supabase.from('orders').select('*, ledgers(name)').order('created_at', { ascending: false }).limit(5)
+        supabase.from('orders').select('*, ledgers(name)').order('created_at', { ascending: false }).limit(5),
+        supabase.from('raw_materials').select('*')
       ]);
 
       if (ledgersResponse.data) setLedgers(ledgersResponse.data);
       if (ordersResponse.data) setOrders(ordersResponse.data);
+      
+      if (rawMatsResponse.data) {
+        const lowStock = rawMatsResponse.data.filter(m => m.current_stock < (m.minimum_stock || 10));
+        setAlerts(lowStock);
+      }
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
@@ -62,6 +69,18 @@ export default function AdminDashboard({ navigation }) {
             <Text style={styles.statValue}>{ledgers.length}</Text>
           </View>
         </View>
+
+        {alerts.length > 0 && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.danger }]}>⚠️ Smart Alerts</Text>
+            {alerts.map(m => (
+              <View key={m.id} style={{ backgroundColor: theme.colors.danger + '20', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: theme.colors.danger, marginBottom: 10 }}>
+                <Text style={{ color: theme.colors.text, fontWeight: 'bold' }}>Low Stock: {m.name}</Text>
+                <Text style={{ color: theme.colors.textSecondary }}>Only {m.current_stock} {m.unit} left (Minimum: {m.minimum_stock || 10}). Please reorder soon.</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         <TouchableOpacity 
           style={styles.analyticsHero} 

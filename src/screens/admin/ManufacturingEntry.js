@@ -70,6 +70,15 @@ export default function ManufacturingEntry({ navigation }) {
     
     setIsSubmitting(true);
     try {
+      // Generate intelligent LOT Number and Expiry
+      const prefix = selectedProduct.name.substring(0, 3).toUpperCase();
+      const dateStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+      const lotNumber = `LOT-${dateStr}-${prefix}-${Math.floor(Math.random()*1000)}`;
+      
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1); // +12 Months
+      const expiryStr = expiryDate.toISOString().slice(0, 10);
+
       // 1. Insert Production Batch
       const { data: batchData, error: batchError } = await supabase
         .from('production_batches')
@@ -77,7 +86,9 @@ export default function ManufacturingEntry({ navigation }) {
           product_id: selectedProduct.id, 
           batch_number: batchNumber, 
           quantity_produced: parseInt(qtyProduced),
-          total_estimated_cost: totalEstimatedCost 
+          total_estimated_cost: totalEstimatedCost,
+          lot_number: lotNumber,
+          expiry_date: expiryStr
         }])
         .select().single();
       
