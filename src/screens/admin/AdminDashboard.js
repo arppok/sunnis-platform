@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2, Clock, Truck, Package, Zap, DollarSign } from 'lucide-react-native';
+import { Users, FileText, TrendingUp, Settings, LogOut, BarChart2, Clock, Truck, Package, Zap, DollarSign, Activity } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard({ navigation }) {
@@ -63,7 +63,18 @@ export default function AdminDashboard({ navigation }) {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Sales & Customers</Text>
+        <TouchableOpacity 
+          style={styles.analyticsHero} 
+          onPress={() => navigation.navigate('FinancialAnalytics')}
+        >
+          <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 10}}>
+            <Activity color="#FFF" size={28} />
+            <Text style={styles.analyticsHeroTitle}>Financial Analytics</Text>
+          </View>
+          <Text style={styles.analyticsHeroSub}>View real-time Profit & Loss breakdown</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Wholesale & Sales</Text>
         <View style={styles.grid}>
           <ActionCard icon={<Clock color={theme.colors.primary} size={32} />} title="Consumer Orders" onPress={() => navigation.navigate('PendingOrders')} />
           <ActionCard icon={<Users color={theme.colors.primary} size={32} />} title="Manage Ledgers" onPress={() => navigation.navigate('ManageLedgers')} />
@@ -131,14 +142,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   scroll: {
-    padding: theme.spacing.l,
+    paddingHorizontal: theme.spacing.l,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-    marginTop: theme.spacing.m,
+    padding: theme.spacing.l,
+    paddingTop: theme.spacing.xl,
   },
   greeting: {
     color: theme.colors.textSecondary,
@@ -148,6 +159,9 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: 28,
     fontWeight: 'bold',
+  },
+  logoutBtn: {
+    padding: theme.spacing.s
   },
   statsContainer: {
     flexDirection: 'row',
