@@ -127,8 +127,18 @@ export default function ReportsDashboard({ navigation }) {
                 <Text style={styles.itemRevenue}>${item.revenue.toFixed(2)}</Text>
               </View>
             ))}
-            {sortedItems.length === 0 && (
-              <Text style={{color:'gray', textAlign:'center', marginTop: 20}}>No sales data for this period.</Text>
+            <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Invoices Generated</Text>
+            {filteredInvoices.map(inv => (
+              <TouchableOpacity key={inv.id} style={styles.invoiceCard} onPress={() => navigation.navigate('InvoicePreview', { invoiceId: inv.id })}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemName}>{inv.invoice_number}</Text>
+                  <Text style={styles.itemQty}>{new Date(inv.created_at).toLocaleString()}</Text>
+                </View>
+                <Text style={styles.itemRevenue}>₹{Number(inv.total_amount).toFixed(2)}</Text>
+              </TouchableOpacity>
+            ))}
+            {filteredInvoices.length === 0 && (
+              <Text style={{color:'gray', textAlign:'center', marginTop: 20}}>No invoices for this period.</Text>
             )}
           </>
         )}
@@ -160,5 +170,6 @@ const styles = StyleSheet.create({
   itemIcon: { padding: 10, backgroundColor: theme.colors.background, borderRadius: 8, marginRight: 15 },
   itemName: { color: theme.colors.text, fontWeight: 'bold', fontSize: 16 },
   itemQty: { color: theme.colors.textSecondary, fontSize: 12, marginTop: 4 },
-  itemRevenue: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16 }
+  itemRevenue: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16 },
+  invoiceCard: { flexDirection: 'row', backgroundColor: theme.colors.surfaceHighlight, padding: theme.spacing.m, borderRadius: theme.borderRadius.m, marginBottom: theme.spacing.s, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border }
 });
