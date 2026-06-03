@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Switch } from 'react-native';
 import { theme } from '../../theme';
-import { ArrowLeft, Plus, Trash2, Package } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2, Package, Edit3 } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function ManageProducts({ navigation }) {
   const [products, setProducts] = useState([]);
+  const [rawMaterials, setRawMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Form State
@@ -15,15 +16,23 @@ export default function ManageProducts({ navigation }) {
   const [isUpcoming, setIsUpcoming] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Recipe State
+  const [expandedProductId, setExpandedProductId] = useState(null);
+  const [selectedRawMaterial, setSelectedRawMaterial] = useState(null);
+  const [recipeQty, setRecipeQty] = useState('');
+
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      setProducts(data || []);
+      const [prodRes, matRes] = await Promise.all([
+        supabase.from('products').select(`*, product_recipes(id, quantity_required, raw_materials(id, name, unit))`).order('created_at', { ascending: false }),
+        supabase.from('raw_materials').select('*').order('name')
+      ]);
+      setProducts(prodRes.data || []);
+      setRawMaterials(matRes.data || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -36,20 +45,12 @@ export default function ManageProducts({ navigation }) {
       if (global.alert) alert('Please enter a product name and price');
       return;
     }
-    
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('products').insert([{ 
-        name, 
-        description, 
-        price: parseFloat(price),
-        is_upcoming: isUpcoming 
-      }]);
+      const { error } = await supabase.from('products').insert([{ name, description, price: parseFloat(price), is_upcoming: isUpcoming }]);
       if (error) throw error;
-      
       setName(''); setDescription(''); setPrice(''); setIsUpcoming(false);
-      await fetchProducts();
-      if (global.alert) alert('Product published successfully!');
+      await fetchData();
     } catch (error) {
       console.error(error);
       if (global.alert) alert('Failed to add product');
@@ -63,7 +64,38 @@ export default function ManageProducts({ navigation }) {
     try {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) throw error;
-      await fetchProducts();
+      await fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleAddRecipeItem = async (productId) => {
+    if (!selectedRawMaterial || !recipeQty) {
+      if (global.alert) alert('Please select a material and enter quantity.');
+      return;
+    }
+    try {
+      const { error } = await supabase.from('product_recipes').insert([{
+        product_id: productId,
+        raw_material_id: selectedRawMaterial.id,
+        quantity_required: parseFloat(recipeQty)
+      }]);
+      if (error) throw error;
+      setSelectedRawMaterial(null);
+      setRecipeQty('');
+      await fetchData();
+    } catch (error) {
+      console.error(error);
+      if (global.alert) alert('Failed to add recipe item');
+    }
+  };
+
+  const handleRemoveRecipeItem = async (recipeId) => {
+    try {
+      const { error } = await supabase.from('product_recipes').delete().eq('id', recipeId);
+      if (error) throw error;
+      await fetchData();
     } catch (error) {
       console.error(error);
     }
@@ -83,24 +115,16 @@ export default function ManageProducts({ navigation }) {
           <Text style={styles.sectionTitle}>Publish New Item</Text>
           <TextInput style={styles.input} placeholder="Product/Scheme Name" placeholderTextColor={theme.colors.textSecondary} value={name} onChangeText={setName} />
           <TextInput style={styles.input} placeholder="Description" placeholderTextColor={theme.colors.textSecondary} value={description} onChangeText={setDescription} multiline />
-          <TextInput style={styles.input} placeholder="Price ($)" placeholderTextColor={theme.colors.textSecondary} value={price} onChangeText={setPrice} keyboardType="decimal-pad" />
+          <TextInput style={styles.input} placeholder="Price (₹)" placeholderTextColor={theme.colors.textSecondary} value={price} onChangeText={setPrice} keyboardType="decimal-pad" />
           
           <View style={styles.switchContainer}>
             <Text style={styles.switchLabel}>Is this an Upcoming Scheme?</Text>
-            <Switch 
-              value={isUpcoming} 
-              onValueChange={setIsUpcoming} 
-              trackColor={{ false: theme.colors.surfaceHighlight, true: theme.colors.primary + '50' }}
-              thumbColor={isUpcoming ? theme.colors.primary : '#f4f3f4'}
-            />
+            <Switch value={isUpcoming} onValueChange={setIsUpcoming} trackColor={{ false: theme.colors.surfaceHighlight, true: theme.colors.primary + '50' }} thumbColor={isUpcoming ? theme.colors.primary : '#f4f3f4'} />
           </View>
 
           <TouchableOpacity style={styles.button} onPress={handleAddProduct} disabled={isSubmitting}>
             {isSubmitting ? <ActivityIndicator color="#fff" /> : (
-              <>
-                <Plus color="#fff" size={20} style={{ marginRight: 8 }} />
-                <Text style={styles.buttonText}>Publish to Store</Text>
-              </>
+              <><Plus color="#fff" size={20} style={{ marginRight: 8 }} /><Text style={styles.buttonText}>Publish to Store</Text></>
             )}
           </TouchableOpacity>
         </View>
@@ -108,17 +132,60 @@ export default function ManageProducts({ navigation }) {
         <Text style={styles.sectionTitle}>Live Products & Schemes</Text>
         {loading ? <ActivityIndicator color={theme.colors.primary} /> : (
           products.map(product => (
-            <View key={product.id} style={styles.productCard}>
-              <View style={styles.iconContainer}>
-                <Package color={product.is_upcoming ? theme.colors.warning : theme.colors.primary} size={24} />
-              </View>
-              <View style={{ flex: 1, marginLeft: 15 }}>
-                <Text style={styles.productName}>{product.name}</Text>
-                <Text style={styles.productDesc}>{product.is_upcoming ? 'UPCOMING SCHEME' : `₹${product.price}`}</Text>
-              </View>
-              <TouchableOpacity onPress={() => handleDelete(product.id)}>
-                <Trash2 color={theme.colors.danger} size={20} />
+            <View key={product.id} style={styles.productCardWrapper}>
+              <TouchableOpacity style={styles.productCard} onPress={() => setExpandedProductId(expandedProductId === product.id ? null : product.id)}>
+                <View style={styles.iconContainer}>
+                  <Package color={product.is_upcoming ? theme.colors.warning : theme.colors.primary} size={24} />
+                </View>
+                <View style={{ flex: 1, marginLeft: 15 }}>
+                  <Text style={styles.productName}>{product.name}</Text>
+                  <Text style={styles.productDesc}>{product.is_upcoming ? 'UPCOMING SCHEME' : `₹${product.price}`}</Text>
+                </View>
+                <TouchableOpacity onPress={() => handleDelete(product.id)}>
+                  <Trash2 color={theme.colors.danger} size={20} />
+                </TouchableOpacity>
               </TouchableOpacity>
+
+              {expandedProductId === product.id && (
+                <View style={styles.expandedSection}>
+                  <Text style={styles.recipeTitle}>Recipe (Bill of Materials) for 1 Unit</Text>
+                  
+                  {product.product_recipes?.map(item => (
+                    <View key={item.id} style={styles.recipeRow}>
+                      <Text style={styles.recipeName}>{item.raw_materials?.name}</Text>
+                      <Text style={styles.recipeQty}>{item.quantity_required} {item.raw_materials?.unit}</Text>
+                      <TouchableOpacity onPress={() => handleRemoveRecipeItem(item.id)}>
+                        <Trash2 color={theme.colors.danger} size={16} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  
+                  <View style={styles.addRecipeBox}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                      {rawMaterials.map(rm => (
+                        <TouchableOpacity key={rm.id} style={[styles.rmChip, selectedRawMaterial?.id === rm.id && styles.rmChipActive]} onPress={() => setSelectedRawMaterial(rm)}>
+                          <Text style={[styles.rmChipText, selectedRawMaterial?.id === rm.id && styles.rmChipTextActive]}>{rm.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                    <View style={styles.recipeInputRow}>
+                      <TextInput 
+                        style={styles.recipeInput} 
+                        placeholder={`Qty (${selectedRawMaterial ? selectedRawMaterial.unit : 'unit'})`} 
+                        placeholderTextColor="#666" 
+                        value={recipeQty} 
+                        onChangeText={setRecipeQty} 
+                        keyboardType="decimal-pad" 
+                      />
+                      <TouchableOpacity style={styles.addRecipeBtn} onPress={() => handleAddRecipeItem(product.id)}>
+                        <Plus color="#FFF" size={16} />
+                        <Text style={styles.addRecipeBtnText}>Add Ingredient</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                </View>
+              )}
             </View>
           ))
         )}
@@ -142,8 +209,23 @@ const styles = StyleSheet.create({
   switchLabel: { color: theme.colors.textSecondary, fontSize: 16 },
   button: { flexDirection: 'row', backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.m, padding: theme.spacing.m, alignItems: 'center', justifyContent: 'center' },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
-  productCard: { flexDirection: 'row', backgroundColor: theme.colors.surface, padding: theme.spacing.m, borderRadius: theme.borderRadius.m, marginBottom: theme.spacing.s, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border },
+  productCardWrapper: { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.m, marginBottom: theme.spacing.s, borderWidth: 1, borderColor: theme.colors.border },
+  productCard: { flexDirection: 'row', padding: theme.spacing.m, alignItems: 'center' },
   iconContainer: { padding: 10, backgroundColor: theme.colors.background, borderRadius: theme.borderRadius.m },
   productName: { color: theme.colors.text, fontWeight: 'bold', fontSize: 16 },
-  productDesc: { color: theme.colors.textSecondary, fontSize: 12, marginTop: 4 }
+  productDesc: { color: theme.colors.textSecondary, fontSize: 12, marginTop: 4 },
+  expandedSection: { padding: theme.spacing.m, borderTopWidth: 1, borderTopColor: theme.colors.border, backgroundColor: theme.colors.background + '50' },
+  recipeTitle: { color: theme.colors.text, fontWeight: 'bold', marginBottom: 10, fontSize: 14 },
+  recipeRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
+  recipeName: { color: theme.colors.text, fontSize: 14, flex: 1 },
+  recipeQty: { color: theme.colors.textSecondary, fontSize: 14, width: 80, textAlign: 'right', marginRight: 15 },
+  addRecipeBox: { marginTop: 15, padding: 10, backgroundColor: theme.colors.surface, borderRadius: 8 },
+  rmChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15, backgroundColor: theme.colors.background, borderWidth: 1, borderColor: theme.colors.border, marginRight: 8 },
+  rmChipActive: { backgroundColor: theme.colors.primary + '30', borderColor: theme.colors.primary },
+  rmChipText: { color: theme.colors.text, fontSize: 12 },
+  rmChipTextActive: { color: theme.colors.primary, fontWeight: 'bold' },
+  recipeInputRow: { flexDirection: 'row', gap: 10 },
+  recipeInput: { flex: 1, backgroundColor: theme.colors.background, borderRadius: 8, padding: 8, color: theme.colors.text, borderWidth: 1, borderColor: theme.colors.border },
+  addRecipeBtn: { backgroundColor: theme.colors.primary, borderRadius: 8, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  addRecipeBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 12, marginLeft: 5 }
 });
