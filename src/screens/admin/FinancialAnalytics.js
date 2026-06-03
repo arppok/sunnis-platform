@@ -44,7 +44,7 @@ export default function FinancialAnalytics({ navigation }) {
       setRevenue(invoiceRev + orderRev);
 
       // Fetch Expenses
-      const { data: purchaseBills } = await applyDateFilter(supabase.from('purchase_bills').select('total_amount'));
+      const { data: purchaseBills } = await applyDateFilter(supabase.from('purchase_bills').select('total_amount'), 'date');
       const purchaseCost = purchaseBills?.reduce((sum, b) => sum + Number(b.total_amount || 0), 0) || 0;
       setPurchases(purchaseCost);
 
