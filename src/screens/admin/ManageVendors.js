@@ -12,6 +12,7 @@ export default function ManageVendors({ navigation }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [supplierType, setSupplierType] = useState('Spice'); // Spice, Packaging, Other
+  const [expandedVendorId, setExpandedVendorId] = useState(null);
   const types = ['Spice', 'Packaging', 'Other'];
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -21,7 +22,10 @@ export default function ManageVendors({ navigation }) {
 
   const fetchVendors = async () => {
     try {
-      const { data, error } = await supabase.from('vendors').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('vendors').select(`
+        *,
+        purchase_bills(id, bill_number, total_amount, date)
+      `).order('created_at', { ascending: false });
       if (error) throw error;
       setVendors(data || []);
     } catch (error) {
@@ -95,15 +99,42 @@ export default function ManageVendors({ navigation }) {
         <Text style={styles.sectionTitle}>Vendor List</Text>
         {loading ? <ActivityIndicator color={theme.colors.primary} /> : (
           vendors.map(vendor => (
-            <View key={vendor.id} style={styles.vendorCard}>
-              <View style={styles.iconContainer}><Truck color={theme.colors.primary} size={20} /></View>
-              <View style={{ flex: 1, marginLeft: 15 }}>
-                <Text style={styles.vendorName}>{vendor.name}</Text>
-                <Text style={styles.vendorDetails}>{vendor.supplier_type} | {vendor.phone || 'No phone'}</Text>
-              </View>
-              <TouchableOpacity onPress={() => handleDelete(vendor.id)}>
-                <Trash2 color={theme.colors.danger} size={20} />
+            <View key={vendor.id} style={styles.vendorCardWrapper}>
+              <TouchableOpacity style={styles.vendorCard} onPress={() => setExpandedVendorId(expandedVendorId === vendor.id ? null : vendor.id)}>
+                <View style={styles.iconContainer}><Truck color={theme.colors.primary} size={20} /></View>
+                <View style={{ flex: 1, marginLeft: 15 }}>
+                  <Text style={styles.vendorName}>{vendor.name}</Text>
+                  <Text style={styles.vendorDetails}>{vendor.supplier_type} | {vendor.phone || 'No phone'}</Text>
+                </View>
+                <TouchableOpacity onPress={() => handleDelete(vendor.id)}>
+                  <Trash2 color={theme.colors.danger} size={20} />
+                </TouchableOpacity>
               </TouchableOpacity>
+              
+              {expandedVendorId === vendor.id && (
+                <View style={styles.expandedSection}>
+                  <Text style={styles.billsTitle}>Bills History</Text>
+                  {vendor.purchase_bills && vendor.purchase_bills.length > 0 ? (
+                    vendor.purchase_bills.map(bill => (
+                      <View key={bill.id} style={styles.billRow}>
+                        <View>
+                          <Text style={styles.billNo}>{bill.bill_number}</Text>
+                          <Text style={styles.billDate}>{new Date(bill.date).toLocaleDateString()}</Text>
+                        </View>
+                        <Text style={styles.billAmount}>₹{Number(bill.total_amount).toFixed(2)}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.noBillsText}>No bills recorded for this vendor.</Text>
+                  )}
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>Total Payable:</Text>
+                    <Text style={styles.totalValue}>
+                      ₹{(vendor.purchase_bills?.reduce((acc, b) => acc + Number(b.total_amount), 0) || 0).toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              )}
             </View>
           ))
         )}
@@ -130,8 +161,19 @@ const styles = StyleSheet.create({
   typeTextActive: { color: theme.colors.primary, fontWeight: 'bold' },
   button: { flexDirection: 'row', backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.m, padding: theme.spacing.m, alignItems: 'center', justifyContent: 'center' },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
-  vendorCard: { flexDirection: 'row', backgroundColor: theme.colors.surface, padding: theme.spacing.m, borderRadius: theme.borderRadius.m, marginBottom: theme.spacing.s, alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border },
+  vendorCardWrapper: { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.m, marginBottom: theme.spacing.s, borderWidth: 1, borderColor: theme.colors.border },
+  vendorCard: { flexDirection: 'row', padding: theme.spacing.m, alignItems: 'center' },
   iconContainer: { padding: 10, backgroundColor: theme.colors.background, borderRadius: 8 },
   vendorName: { color: theme.colors.text, fontWeight: 'bold', fontSize: 16 },
-  vendorDetails: { color: theme.colors.textSecondary, fontSize: 14, marginTop: 4 }
+  vendorDetails: { color: theme.colors.textSecondary, fontSize: 14, marginTop: 4 },
+  expandedSection: { padding: theme.spacing.m, borderTopWidth: 1, borderTopColor: theme.colors.border, backgroundColor: theme.colors.background + '50' },
+  billsTitle: { color: theme.colors.text, fontWeight: 'bold', marginBottom: 10 },
+  billRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
+  billNo: { color: theme.colors.text, fontSize: 14 },
+  billDate: { color: theme.colors.textSecondary, fontSize: 12 },
+  billAmount: { color: theme.colors.text, fontWeight: 'bold' },
+  noBillsText: { color: theme.colors.textSecondary, fontStyle: 'italic', marginBottom: 10 },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  totalLabel: { color: theme.colors.text, fontWeight: 'bold', fontSize: 16 },
+  totalValue: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 18 }
 });

@@ -9,6 +9,10 @@ export default function ReceivePayment({ navigation }) {
   const [selectedLedger, setSelectedLedger] = useState(null);
   const [amount, setAmount] = useState('');
   const [isPayment, setIsPayment] = useState(true); // true = Receive Payment, false = Create Order (Credit)
+  
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const paymentMethods = ['Cash', 'UPI', 'Cheque', 'Journal'];
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -50,12 +54,23 @@ export default function ReceivePayment({ navigation }) {
           total_amount: Math.abs(numAmount), 
           status: isPayment ? 'paid' : 'credit' 
         }]);
-
       if (orderError) throw orderError;
+
+      // 3. Log Payment Method
+      if (isPayment) {
+        const { error: logError } = await supabase
+          .from('payment_logs')
+          .insert([{
+            ledger_id: selectedLedger.id,
+            amount: Math.abs(numAmount),
+            payment_method: paymentMethod
+          }]);
+        if (logError) throw logError;
+      }
 
       if (global.alert) {
         alert(isPayment 
-          ? `Payment received! WhatsApp alert: "Your payment of ₹${numAmount} has been received. Your new balance is ₹${newBalance}."` 
+          ? `Payment received via ${paymentMethod}! WhatsApp alert: "Your payment of ₹${numAmount} has been received. Your new balance is ₹${newBalance}."` 
           : `Order created! WhatsApp alert: "A credit entry of ₹${numAmount} has been added. Your new balance is ₹${newBalance}."`);
       }
 
@@ -89,7 +104,7 @@ export default function ReceivePayment({ navigation }) {
           <TouchableOpacity 
             style={[styles.toggleBtn, !isPayment && styles.toggleActive]} 
             onPress={() => setIsPayment(false)}>
-            <Text style={[styles.toggleText, !isPayment && styles.toggleTextActive]}>Create Order (Credit)</Text>
+            <Text style={[styles.toggleText, !isPayment && styles.toggleTextActive]}>Create Credit</Text>
           </TouchableOpacity>
         </View>
 
@@ -102,7 +117,7 @@ export default function ReceivePayment({ navigation }) {
                 style={[styles.ledgerChip, selectedLedger?.id === l.id && styles.ledgerChipActive]}
                 onPress={() => setSelectedLedger(l)}>
                 <Text style={[styles.ledgerChipText, selectedLedger?.id === l.id && styles.ledgerChipTextActive]}>
-                  {l.name} (${l.balance})
+                  {l.name} (₹{l.balance})
                 </Text>
               </TouchableOpacity>
             ))}
@@ -111,7 +126,7 @@ export default function ReceivePayment({ navigation }) {
         )}
 
         <View style={styles.formCard}>
-          <Text style={styles.sectionTitle}>Amount ($)</Text>
+          <Text style={styles.sectionTitle}>Amount (₹)</Text>
           <TextInput 
             style={styles.input} 
             placeholder="0.00" 
@@ -121,11 +136,27 @@ export default function ReceivePayment({ navigation }) {
             keyboardType="decimal-pad" 
           />
           
+          {isPayment && (
+            <>
+              <Text style={styles.sectionTitle}>Payment Method</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                {paymentMethods.map(m => (
+                  <TouchableOpacity 
+                    key={m} 
+                    style={[styles.ledgerChip, paymentMethod === m && styles.ledgerChipActive]}
+                    onPress={() => setPaymentMethod(m)}>
+                    <Text style={[styles.ledgerChipText, paymentMethod === m && styles.ledgerChipTextActive]}>{m}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </>
+          )}
+          
           <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? <ActivityIndicator color="#fff" /> : (
               <>
                 <CheckCircle color="#fff" size={20} style={{ marginRight: 8 }} />
-                <Text style={styles.buttonText}>{isPayment ? 'Record Payment' : 'Record Order'}</Text>
+                <Text style={styles.buttonText}>{isPayment ? 'Record Payment' : 'Record Credit'}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -147,7 +178,7 @@ const styles = StyleSheet.create({
   toggleActive: { backgroundColor: theme.colors.primary },
   toggleText: { color: theme.colors.textSecondary, fontWeight: 'bold' },
   toggleTextActive: { color: '#FFF' },
-  sectionTitle: { color: theme.colors.text, fontSize: 18, fontWeight: 'bold', marginBottom: theme.spacing.m },
+  sectionTitle: { color: theme.colors.text, fontSize: 16, fontWeight: 'bold', marginBottom: theme.spacing.m },
   ledgerChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, marginRight: 10 },
   ledgerChipActive: { backgroundColor: theme.colors.primary + '30', borderColor: theme.colors.primary },
   ledgerChipText: { color: theme.colors.text },
