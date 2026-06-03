@@ -158,7 +158,7 @@ export default function ManufacturingEntry({ navigation }) {
               <View key={index} style={styles.lineItem}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemText}>{item.material.name}</Text>
-                  <Text style={styles.itemSubtext}>Est. Cost: ${cost}/{item.material.unit}</Text>
+                  <Text style={styles.itemSubtext}>Est. Cost: ₹{cost}/{item.material.unit}</Text>
                 </View>
                 <TextInput style={styles.inputSmall} placeholder="Qty Used" placeholderTextColor="#666" value={item.quantityUsed} onChangeText={(t) => updateQuantity(item.material.id, t)} keyboardType="numeric" />
                 <Text style={styles.unitText}>{item.material.unit}</Text>

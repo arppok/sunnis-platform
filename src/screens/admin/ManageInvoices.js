@@ -29,7 +29,7 @@ export default function ManageInvoices({ navigation }) {
   };
 
   const handleForward = (invoice) => {
-    const text = `Hello ${invoice.ledgers?.name},\n\nYour invoice ${invoice.invoice_number} has been generated.\nTotal Amount: $${invoice.total_amount}\n\nPlease let us know if you have any questions.\n\n- Sunnis Team`;
+    const text = `Hello ${invoice.ledgers?.name},\n\nYour invoice ${invoice.invoice_number} has been generated.\nTotal Amount: ₹${invoice.total_amount}\n\nPlease let us know if you have any questions.\n\n- Sunnis Team`;
     
     // Simulate WhatsApp forwarding
     if (global.alert) {
@@ -64,7 +64,7 @@ export default function ManageInvoices({ navigation }) {
       <ScrollView style={styles.scroll}>
         {loading ? <ActivityIndicator color={theme.colors.primary} size="large" /> : (
           invoices.map(inv => (
-            <View key={inv.id} style={styles.invoiceCard}>
+            <TouchableOpacity key={inv.id} style={styles.invoiceCard} onPress={() => navigation.navigate('InvoicePreview', { invoiceId: inv.id })}>
               <View style={styles.invoiceHeader}>
                 <View style={styles.iconContainer}>
                   <FileText color={theme.colors.primary} size={24} />
@@ -79,7 +79,7 @@ export default function ManageInvoices({ navigation }) {
               </View>
 
               <View style={styles.invoiceDetails}>
-                <Text style={styles.amountText}>Total: ${inv.total_amount}</Text>
+                <Text style={styles.amountText}>Total: ₹{inv.total_amount}</Text>
                 <Text style={styles.dateText}>{new Date(inv.created_at).toLocaleDateString()}</Text>
               </View>
 
@@ -97,7 +97,7 @@ export default function ManageInvoices({ navigation }) {
                   <Text style={[styles.actionText, { color: theme.colors.danger }]}>Delete</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
         {invoices.length === 0 && !loading && (

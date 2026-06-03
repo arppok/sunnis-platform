@@ -159,7 +159,7 @@ export default function ManageLedgers({ navigation }) {
                     <Text style={styles.groupText}>{ledger.ledger_group || 'Consumer'}</Text>
                   </View>
                 </View>
-                <Text style={styles.ledgerContact}>{ledger.phone || 'No phone'} | Balance: ${ledger.balance}</Text>
+                <Text style={styles.ledgerContact}>{ledger.phone || 'No phone'} | Balance: ₹{ledger.balance}</Text>
                 {ledger.gst ? <Text style={styles.ledgerContact}>GST: {ledger.gst}</Text> : null}
                 {ledger.address ? <Text style={styles.ledgerContact}>{ledger.address}</Text> : null}
               </View>

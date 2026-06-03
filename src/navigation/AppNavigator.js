@@ -20,6 +20,7 @@ import ManageEmployees from '../screens/admin/ManageEmployees';
 import AttendanceWages from '../screens/admin/AttendanceWages';
 import FactoryExpenses from '../screens/admin/FactoryExpenses';
 import FinancialAnalytics from '../screens/admin/FinancialAnalytics';
+import InvoicePreview from '../screens/admin/InvoicePreview';
 import CheckoutScreen from '../screens/user/CheckoutScreen';
 import { theme } from '../theme';
 
@@ -60,6 +61,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AttendanceWages" component={AttendanceWages} />
         <Stack.Screen name="FactoryExpenses" component={FactoryExpenses} />
         <Stack.Screen name="FinancialAnalytics" component={FinancialAnalytics} />
+        <Stack.Screen name="InvoicePreview" component={InvoicePreview} />
         <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       </Stack.Navigator>
     </NavigationContainer>

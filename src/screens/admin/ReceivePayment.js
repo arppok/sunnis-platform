@@ -55,8 +55,8 @@ export default function ReceivePayment({ navigation }) {
 
       if (global.alert) {
         alert(isPayment 
-          ? `Payment received! WhatsApp alert: "Your payment of $${numAmount} has been received. Your new balance is $${newBalance}."` 
-          : `Order created! WhatsApp alert: "A credit entry of $${numAmount} has been added. Your new balance is $${newBalance}."`);
+          ? `Payment received! WhatsApp alert: "Your payment of ₹${numAmount} has been received. Your new balance is ₹${newBalance}."` 
+          : `Order created! WhatsApp alert: "A credit entry of ₹${numAmount} has been added. Your new balance is ₹${newBalance}."`);
       }
 
       setAmount('');

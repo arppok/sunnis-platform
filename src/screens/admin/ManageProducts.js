@@ -114,7 +114,7 @@ export default function ManageProducts({ navigation }) {
               </View>
               <View style={{ flex: 1, marginLeft: 15 }}>
                 <Text style={styles.productName}>{product.name}</Text>
-                <Text style={styles.productDesc}>{product.is_upcoming ? 'UPCOMING SCHEME' : `$${product.price}`}</Text>
+                <Text style={styles.productDesc}>{product.is_upcoming ? 'UPCOMING SCHEME' : `₹${product.price}`}</Text>
               </View>
               <TouchableOpacity onPress={() => handleDelete(product.id)}>
                 <Trash2 color={theme.colors.danger} size={20} />

@@ -126,7 +126,7 @@ export default function AdminDashboard({ navigation }) {
             <ActivityItem 
               key={order.id} 
               title={`Order for ${order.ledgers?.name || 'Unknown'}`} 
-              subtitle={`Amount: $${order.total_amount}`} 
+              subtitle={`Amount: ₹${order.total_amount}`} 
               time={new Date(order.created_at).toLocaleDateString()} 
             />
           ))}

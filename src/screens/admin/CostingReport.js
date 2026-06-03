@@ -83,7 +83,7 @@ export default function CostingReport({ navigation }) {
                 </View>
 
                 <View style={styles.footer}>
-                  <Text style={styles.footerText}>Total Batch Cost: ${Number(batch.total_estimated_cost).toFixed(2)}</Text>
+                  <Text style={styles.footerText}>Total Batch Cost: ₹{Number(batch.total_estimated_cost).toFixed(2)}</Text>
                   <Text style={[styles.marginText, { color: profitMargin >= 0 ? theme.colors.primary : theme.colors.danger }]}>
                     Margin: {marginPercentage}%
                   </Text>
