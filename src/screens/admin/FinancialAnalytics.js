@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react-native';
+import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function FinancialAnalytics({ navigation }) {
   const [loading, setLoading] = useState(true);
+  const [timeFilter, setTimeFilter] = useState('All Time');
+  const filters = ['All Time', 'This Year', 'This Month'];
   
   // Metrics
   const [revenue, setRevenue] = useState(0);
@@ -15,28 +17,42 @@ export default function FinancialAnalytics({ navigation }) {
 
   useEffect(() => {
     fetchFinancials();
-  }, []);
+  }, [timeFilter]);
 
   const fetchFinancials = async () => {
+    setLoading(true);
     try {
+      let startDate = null;
+      const now = new Date();
+      if (timeFilter === 'This Month') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      } else if (timeFilter === 'This Year') {
+        startDate = new Date(now.getFullYear(), 0, 1).toISOString();
+      }
+
+      const applyDateFilter = (query, dateColumn = 'created_at') => {
+        if (startDate) return query.gte(dateColumn, startDate);
+        return query;
+      };
+
       // Fetch Revenue (Wholesale Invoices + Consumer Orders)
-      const { data: invoices } = await supabase.from('invoices').select('total_amount');
-      const { data: orders } = await supabase.from('consumer_orders').select('total_amount').eq('status', 'Approved');
+      const { data: invoices } = await applyDateFilter(supabase.from('invoices').select('total_amount'));
+      const { data: orders } = await applyDateFilter(supabase.from('consumer_orders').select('total_amount').eq('status', 'Approved'));
       
       const invoiceRev = invoices?.reduce((sum, i) => sum + Number(i.total_amount || 0), 0) || 0;
       const orderRev = orders?.reduce((sum, o) => sum + Number(o.total_amount || 0), 0) || 0;
       setRevenue(invoiceRev + orderRev);
 
       // Fetch Expenses
-      const { data: purchaseBills } = await supabase.from('purchase_bills').select('total_amount');
+      const { data: purchaseBills } = await applyDateFilter(supabase.from('purchase_bills').select('total_amount'));
       const purchaseCost = purchaseBills?.reduce((sum, b) => sum + Number(b.total_amount || 0), 0) || 0;
       setPurchases(purchaseCost);
 
-      const { data: wagePayments } = await supabase.from('wage_payments').select('amount');
+      const { data: wagePayments } = await applyDateFilter(supabase.from('wage_payments').select('amount'), 'date');
       const wageCost = wagePayments?.reduce((sum, w) => sum + Number(w.amount || 0), 0) || 0;
       setWages(wageCost);
 
-      const { data: factoryExpenses } = await supabase.from('factory_expenses').select('amount');
+      const { data: factoryExpenses } = await applyDateFilter(supabase.from('factory_expenses').select('amount'), 'date');
       const overheadCost = factoryExpenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
       setOverhead(overheadCost);
 
@@ -61,11 +77,21 @@ export default function FinancialAnalytics({ navigation }) {
       </View>
 
       <ScrollView style={styles.scroll}>
+        
+        {/* Time Filters */}
+        <View style={styles.filterRow}>
+          {filters.map(f => (
+            <TouchableOpacity key={f} style={[styles.filterChip, timeFilter === f && styles.filterChipActive]} onPress={() => setTimeFilter(f)}>
+              <Text style={[styles.filterText, timeFilter === f && styles.filterTextActive]}>{f}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {loading ? <ActivityIndicator color={theme.colors.primary} size="large" style={{marginTop: 50}} /> : (
           <>
             {/* Master Net Profit Card */}
             <View style={[styles.masterCard, { borderColor: netProfit >= 0 ? theme.colors.primary : theme.colors.danger }]}>
-              <Text style={styles.masterLabel}>ALL-TIME NET PROFIT</Text>
+              <Text style={styles.masterLabel}>{timeFilter.toUpperCase()} NET PROFIT</Text>
               <Text style={[styles.masterAmount, { color: netProfit >= 0 ? theme.colors.primary : theme.colors.danger }]}>
                 ${netProfit.toFixed(2)}
               </Text>
@@ -138,6 +164,12 @@ const styles = StyleSheet.create({
   title: { color: theme.colors.text, fontSize: 24, fontWeight: 'bold' },
   scroll: { padding: theme.spacing.l },
   
+  filterRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  filterChip: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: theme.colors.border },
+  filterChipActive: { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary },
+  filterText: { color: theme.colors.textSecondary, fontWeight: '500' },
+  filterTextActive: { color: theme.colors.primary, fontWeight: 'bold' },
+
   masterCard: { backgroundColor: theme.colors.surfaceHighlight, padding: 30, borderRadius: theme.borderRadius.xl, alignItems: 'center', marginBottom: 20, borderWidth: 2 },
   masterLabel: { color: theme.colors.textSecondary, fontSize: 14, fontWeight: 'bold', letterSpacing: 1, marginBottom: 10 },
   masterAmount: { fontSize: 48, fontWeight: 'bold', marginBottom: 15 },
