@@ -13,6 +13,8 @@ export default function ManageEmployees({ navigation }) {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('');
   const [dailyWage, setDailyWage] = useState('');
+  const [groupType, setGroupType] = useState('Wage'); // Wage or Salaried
+  const [joinDate, setJoinDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -40,11 +42,13 @@ export default function ManageEmployees({ navigation }) {
         name, 
         phone, 
         role,
-        daily_wage: parseFloat(dailyWage) || 0
+        daily_wage: parseFloat(dailyWage) || 0,
+        group_type: groupType,
+        join_date: joinDate
       }]);
       if (error) throw error;
       
-      setName(''); setPhone(''); setRole(''); setDailyWage('');
+      setName(''); setPhone(''); setRole(''); setDailyWage(''); setGroupType('Wage'); setJoinDate(new Date().toISOString().split('T')[0]);
       await fetchEmployees();
     } catch (error) {
       console.error(error);
@@ -78,7 +82,21 @@ export default function ManageEmployees({ navigation }) {
           <TextInput style={styles.input} placeholder="Full Name" placeholderTextColor={theme.colors.textSecondary} value={name} onChangeText={setName} />
           <TextInput style={styles.input} placeholder="Phone Number" placeholderTextColor={theme.colors.textSecondary} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
           <TextInput style={styles.input} placeholder="Role (e.g., Grinder, Packer)" placeholderTextColor={theme.colors.textSecondary} value={role} onChangeText={setRole} />
-          <TextInput style={styles.input} placeholder="Daily Wage (e.g., 50)" placeholderTextColor={theme.colors.textSecondary} value={dailyWage} onChangeText={setDailyWage} keyboardType="numeric" />
+          
+          <Text style={styles.label}>Employment Type:</Text>
+          <View style={styles.typeRow}>
+            <TouchableOpacity style={[styles.typeChip, groupType === 'Wage' && styles.typeChipActive]} onPress={() => setGroupType('Wage')}>
+              <Text style={[styles.typeText, groupType === 'Wage' && styles.typeTextActive]}>Daily Wage</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.typeChip, groupType === 'Salaried' && styles.typeChipActive]} onPress={() => setGroupType('Salaried')}>
+              <Text style={[styles.typeText, groupType === 'Salaried' && styles.typeTextActive]}>Salaried</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TextInput style={styles.input} placeholder={groupType === 'Salaried' ? "Monthly Salary (₹)" : "Daily Wage (₹)"} placeholderTextColor={theme.colors.textSecondary} value={dailyWage} onChangeText={setDailyWage} keyboardType="numeric" />
+          
+          <Text style={styles.label}>Date of Joining (YYYY-MM-DD):</Text>
+          <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor={theme.colors.textSecondary} value={joinDate} onChangeText={setJoinDate} />
           
           <TouchableOpacity style={styles.button} onPress={handleAddEmployee} disabled={isSubmitting}>
             {isSubmitting ? <ActivityIndicator color="#fff" /> : (
@@ -94,10 +112,11 @@ export default function ManageEmployees({ navigation }) {
               <View style={styles.iconContainer}><Users color={theme.colors.primary} size={20} /></View>
               <View style={{ flex: 1, marginLeft: 15 }}>
                 <Text style={styles.empName}>{emp.name}</Text>
-                <Text style={styles.empDetails}>{emp.role} | {emp.phone || 'No phone'}</Text>
+                <Text style={styles.empDetails}>{emp.role} | {emp.group_type || 'Wage'}</Text>
+                <Text style={styles.empJoinDate}>Joined: {emp.join_date ? new Date(emp.join_date).toLocaleDateString() : 'N/A'}</Text>
               </View>
               <View style={styles.wageBadge}>
-                <Text style={styles.wageText}>${emp.daily_wage}/day</Text>
+                <Text style={styles.wageText}>₹{emp.daily_wage}/{emp.group_type === 'Salaried' ? 'mo' : 'day'}</Text>
               </View>
               <TouchableOpacity onPress={() => handleDelete(emp.id)} style={{ marginLeft: 15 }}>
                 <Trash2 color={theme.colors.danger} size={20} />
@@ -126,6 +145,13 @@ const styles = StyleSheet.create({
   iconContainer: { padding: 10, backgroundColor: theme.colors.background, borderRadius: 8 },
   empName: { color: theme.colors.text, fontWeight: 'bold', fontSize: 16 },
   empDetails: { color: theme.colors.textSecondary, fontSize: 12, marginTop: 4 },
+  empJoinDate: { color: theme.colors.textSecondary, fontSize: 10, marginTop: 2, fontStyle: 'italic' },
   wageBadge: { backgroundColor: theme.colors.primary + '20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  wageText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 12 }
+  wageText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 12 },
+  label: { color: theme.colors.textSecondary, marginBottom: 8, fontSize: 14 },
+  typeRow: { flexDirection: 'row', marginBottom: 15 },
+  typeChip: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: theme.colors.border, marginRight: 10 },
+  typeChipActive: { backgroundColor: theme.colors.primary + '30', borderColor: theme.colors.primary },
+  typeText: { color: theme.colors.textSecondary },
+  typeTextActive: { color: theme.colors.primary, fontWeight: 'bold' }
 });

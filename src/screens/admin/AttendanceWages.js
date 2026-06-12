@@ -13,6 +13,7 @@ export default function AttendanceWages({ navigation }) {
   // Payment Modal State (simulated via inline UI)
   const [paymentAmount, setPaymentAmount] = useState('');
   const [payingEmpId, setPayingEmpId] = useState(null);
+  const [paymentSuccessId, setPaymentSuccessId] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -63,7 +64,13 @@ export default function AttendanceWages({ navigation }) {
       setPayingEmpId(null);
       setPaymentAmount('');
       await fetchData();
-      if (global.alert) alert('Payment logged successfully');
+      
+      // Trigger Green Tick Visual
+      setPaymentSuccessId(payingEmpId);
+      setTimeout(() => {
+        setPaymentSuccessId(null);
+      }, 2000);
+      
     } catch (error) {
       console.error(error);
       if (global.alert) alert('Failed to log payment');
@@ -102,13 +109,13 @@ export default function AttendanceWages({ navigation }) {
               <View key={emp.id} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.empName}>{emp.name}</Text>
-                    <Text style={styles.empRole}>{emp.role} | ${emp.daily_wage}/day</Text>
+                    <Text style={styles.empName}>{emp.name} {emp.group_type === 'Salaried' ? '(Salaried)' : ''}</Text>
+                    <Text style={styles.empRole}>{emp.role} | ₹{emp.daily_wage}/{emp.group_type === 'Salaried' ? 'month' : 'day'}</Text>
                   </View>
                   <View style={styles.balanceBadge}>
                     <Text style={styles.balanceLabel}>Owed Balance</Text>
                     <Text style={[styles.balanceAmount, { color: balanceOwed > 0 ? theme.colors.danger : theme.colors.primary }]}>
-                      ${balanceOwed.toFixed(2)}
+                      ₹{balanceOwed.toFixed(2)}
                     </Text>
                   </View>
                 </View>
@@ -128,9 +135,14 @@ export default function AttendanceWages({ navigation }) {
                   </View>
                 </View>
 
-                {payingEmpId === emp.id ? (
+                {paymentSuccessId === emp.id ? (
+                  <View style={styles.successBox}>
+                    <CheckCircle color={theme.colors.primary} size={24} />
+                    <Text style={styles.successText}>Payment Successful!</Text>
+                  </View>
+                ) : payingEmpId === emp.id ? (
                   <View style={styles.paymentBox}>
-                    <TextInput style={styles.payInput} placeholder="Amount to Pay" placeholderTextColor="#666" value={paymentAmount} onChangeText={setPaymentAmount} keyboardType="numeric" />
+                    <TextInput style={styles.payInput} placeholder="Amount to Pay (₹)" placeholderTextColor="#666" value={paymentAmount} onChangeText={setPaymentAmount} keyboardType="numeric" />
                     <TouchableOpacity style={styles.payBtnConfirm} onPress={handlePayment}><Text style={{color:'#fff', fontWeight:'bold'}}>Save</Text></TouchableOpacity>
                     <TouchableOpacity style={styles.payBtnCancel} onPress={() => setPayingEmpId(null)}><Text style={{color:theme.colors.danger}}>Cancel</Text></TouchableOpacity>
                   </View>
@@ -173,5 +185,7 @@ const styles = StyleSheet.create({
   payInput: { flex: 1, backgroundColor: theme.colors.surface, color: theme.colors.text, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 5, borderWidth: 1, borderColor: theme.colors.border, marginRight: 10 },
   payBtnConfirm: { backgroundColor: theme.colors.primary, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 5, marginRight: 10 },
   payBtnCancel: { paddingHorizontal: 10, paddingVertical: 10 },
-  payBtnOpen: { flexDirection: 'row', backgroundColor: theme.colors.primary, padding: 12, borderRadius: 8, justifyContent: 'center', alignItems: 'center' }
+  payBtnOpen: { flexDirection: 'row', backgroundColor: theme.colors.primary, padding: 12, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  successBox: { flexDirection: 'row', backgroundColor: theme.colors.primary + '15', padding: 12, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: theme.colors.primary + '50' },
+  successText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 16, marginLeft: 8 }
 });
