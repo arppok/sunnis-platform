@@ -71,7 +71,7 @@ export default function UserDashboard({ navigation, route }) {
             <Text style={styles.greeting}>Welcome to</Text>
             <Text style={styles.title}>Sunnis Spices</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.replace('Login')}>
+          <TouchableOpacity onPress={() => supabase.auth.signOut()}>
             <LogOut color={theme.colors.primary} size={24} />
           </TouchableOpacity>
         </View>

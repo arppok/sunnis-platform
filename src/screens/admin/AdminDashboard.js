@@ -54,7 +54,7 @@ export default function AdminDashboard({ navigation }) {
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.title}>Admin Portal</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.replace('Login')}>
+          <TouchableOpacity onPress={() => supabase.auth.signOut()}>
             <LogOut color={theme.colors.primary} size={24} />
           </TouchableOpacity>
         </View>

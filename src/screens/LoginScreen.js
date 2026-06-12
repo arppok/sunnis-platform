@@ -1,19 +1,43 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { theme } from '../theme';
+import { supabase } from '../lib/supabase';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
-  // Mock login logic for preview
-  const handleLogin = () => {
-    if (email.toLowerCase() === 'admin') {
-      navigation.replace('AdminDashboard');
-    } else {
-      navigation.replace('UserDashboard');
+  async function signInWithEmail() {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      if (global.alert) alert(error.message);
     }
-  };
+    setLoading(false);
+  }
+
+  async function signUpWithEmail() {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      if (global.alert) alert(error.message);
+    } else if (data.session == null) {
+      if (global.alert) alert('Check your email for the confirmation link!');
+    } else {
+      if (global.alert) alert('Signed up successfully!');
+    }
+    setLoading(false);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,10 +50,12 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Email or Username (try 'admin')"
+            placeholder="Email Address"
             placeholderTextColor={theme.colors.textSecondary}
             value={email}
             onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
           <TextInput
             style={styles.input}
@@ -40,11 +66,24 @@ export default function LoginScreen({ navigation }) {
             onChangeText={setPassword}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Sign In</Text>
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={isSignUp ? signUpWithEmail : signInWithEmail} 
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.buttonText}>{isSignUp ? 'Create Account' : 'Sign In'}</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.toggleBtn} onPress={() => setIsSignUp(!isSignUp)}>
+            <Text style={styles.toggleText}>
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.hintText}>Type "admin" for Admin Portal, anything else for User Portal.</Text>
       </View>
     </SafeAreaView>
   );
@@ -99,10 +138,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  hintText: {
+  toggleBtn: {
+    marginTop: theme.spacing.m,
+    alignItems: 'center',
+  },
+  toggleText: {
     color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginTop: theme.spacing.xl,
-    fontStyle: 'italic'
+    fontSize: 14,
   }
 });

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
@@ -23,6 +24,7 @@ import FinancialAnalytics from '../screens/admin/FinancialAnalytics';
 import InvoicePreview from '../screens/admin/InvoicePreview';
 import CheckoutScreen from '../screens/user/CheckoutScreen';
 import { theme } from '../theme';
+import { supabase } from '../lib/supabase';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,30 +41,79 @@ const MyDarkTheme = {
 };
 
 export default function AppNavigator() {
+  const [session, setSession] = useState(null);
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) fetchRole(session.user.id);
+      else setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) fetchRole(session.user.id);
+      else { setRole(null); setLoading(false); }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchRole = async (userId) => {
+    try {
+      const { data, error } = await supabase.from('profiles').select('role').eq('id', userId).single();
+      if (!error && data) {
+        setRole(data.role);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer theme={MyDarkTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
-        <Stack.Screen name="UserDashboard" component={UserDashboard} />
-        <Stack.Screen name="ManageLedgers" component={ManageLedgers} />
-        <Stack.Screen name="ReceivePayment" component={ReceivePayment} />
-        <Stack.Screen name="ManageProducts" component={ManageProducts} />
-        <Stack.Screen name="CreateInvoice" component={CreateInvoice} />
-        <Stack.Screen name="ReportsDashboard" component={ReportsDashboard} />
-        <Stack.Screen name="ManageInvoices" component={ManageInvoices} />
-        <Stack.Screen name="PendingOrders" component={PendingOrders} />
-        <Stack.Screen name="ManageVendors" component={ManageVendors} />
-        <Stack.Screen name="RawMaterials" component={RawMaterials} />
-        <Stack.Screen name="PurchaseEntry" component={PurchaseEntry} />
-        <Stack.Screen name="ManufacturingEntry" component={ManufacturingEntry} />
-        <Stack.Screen name="CostingReport" component={CostingReport} />
-        <Stack.Screen name="ManageEmployees" component={ManageEmployees} />
-        <Stack.Screen name="AttendanceWages" component={AttendanceWages} />
-        <Stack.Screen name="FactoryExpenses" component={FactoryExpenses} />
-        <Stack.Screen name="FinancialAnalytics" component={FinancialAnalytics} />
-        <Stack.Screen name="InvoicePreview" component={InvoicePreview} />
-        <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
+        {!session ? (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        ) : role === 'Admin' || role === 'Floor Manager' ? (
+          <>
+            <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
+            <Stack.Screen name="ManageLedgers" component={ManageLedgers} />
+            <Stack.Screen name="ReceivePayment" component={ReceivePayment} />
+            <Stack.Screen name="ManageProducts" component={ManageProducts} />
+            <Stack.Screen name="CreateInvoice" component={CreateInvoice} />
+            <Stack.Screen name="ReportsDashboard" component={ReportsDashboard} />
+            <Stack.Screen name="ManageInvoices" component={ManageInvoices} />
+            <Stack.Screen name="PendingOrders" component={PendingOrders} />
+            <Stack.Screen name="ManageVendors" component={ManageVendors} />
+            <Stack.Screen name="RawMaterials" component={RawMaterials} />
+            <Stack.Screen name="PurchaseEntry" component={PurchaseEntry} />
+            <Stack.Screen name="ManufacturingEntry" component={ManufacturingEntry} />
+            <Stack.Screen name="CostingReport" component={CostingReport} />
+            <Stack.Screen name="ManageEmployees" component={ManageEmployees} />
+            <Stack.Screen name="AttendanceWages" component={AttendanceWages} />
+            <Stack.Screen name="FactoryExpenses" component={FactoryExpenses} />
+            <Stack.Screen name="FinancialAnalytics" component={FinancialAnalytics} />
+            <Stack.Screen name="InvoicePreview" component={InvoicePreview} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="UserDashboard" component={UserDashboard} />
+            <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
