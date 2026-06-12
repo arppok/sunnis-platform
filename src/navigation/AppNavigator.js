@@ -22,7 +22,9 @@ import AttendanceWages from '../screens/admin/AttendanceWages';
 import FactoryExpenses from '../screens/admin/FactoryExpenses';
 import FinancialAnalytics from '../screens/admin/FinancialAnalytics';
 import InvoicePreview from '../screens/admin/InvoicePreview';
+import ManageDeliveries from '../screens/admin/ManageDeliveries';
 import CheckoutScreen from '../screens/user/CheckoutScreen';
+import DriverDashboard from '../screens/driver/DriverDashboard';
 import { theme } from '../theme';
 import { supabase } from '../lib/supabase';
 
@@ -107,6 +109,11 @@ export default function AppNavigator() {
             <Stack.Screen name="FactoryExpenses" component={FactoryExpenses} />
             <Stack.Screen name="FinancialAnalytics" component={FinancialAnalytics} />
             <Stack.Screen name="InvoicePreview" component={InvoicePreview} />
+            <Stack.Screen name="ManageDeliveries" component={ManageDeliveries} />
+          </>
+        ) : role === 'Driver' ? (
+          <>
+            <Stack.Screen name="DriverDashboard" component={DriverDashboard} />
           </>
         ) : (
           <>

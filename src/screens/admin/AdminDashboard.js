@@ -100,6 +100,7 @@ export default function AdminDashboard({ navigation }) {
           <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="Create Invoice" onPress={() => navigation.navigate('CreateInvoice')} />
           <ActionCard icon={<FileText color={theme.colors.primary} size={32} />} title="View Invoices" onPress={() => navigation.navigate('ManageInvoices')} />
           <ActionCard icon={<TrendingUp color={theme.colors.primary} size={32} />} title="Receive Payment" onPress={() => navigation.navigate('ReceivePayment')} />
+          <ActionCard icon={<Truck color={theme.colors.primary} size={32} />} title="Dispatch Logistics" onPress={() => navigation.navigate('ManageDeliveries')} />
           <ActionCard icon={<Settings color={theme.colors.primary} size={32} />} title="Manage Store" onPress={() => navigation.navigate('ManageProducts')} />
           <ActionCard icon={<BarChart2 color={theme.colors.primary} size={32} />} title="Sales Reports" onPress={() => navigation.navigate('ReportsDashboard')} />
         </View>
