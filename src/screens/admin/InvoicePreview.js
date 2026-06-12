@@ -10,6 +10,7 @@ export default function InvoicePreview({ route, navigation }) {
   const { invoiceId } = route.params || {};
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editablePhone, setEditablePhone] = useState('');
 
   useEffect(() => {
     if (invoiceId) fetchInvoice();
@@ -34,6 +35,7 @@ export default function InvoicePreview({ route, navigation }) {
         
       if (error) throw error;
       setInvoice(data);
+      if (data.ledgers?.phone) setEditablePhone(data.ledgers.phone);
     } catch (error) {
       console.error(error);
       if (global.alert) alert('Failed to load invoice');
@@ -93,7 +95,7 @@ export default function InvoicePreview({ route, navigation }) {
               <div class="meta-col">
                 <div class="meta-label">Billed To:</div>
                 <div class="meta-value-bold">${invoice.ledgers?.name}</div>
-                ${invoice.ledgers?.phone ? `<div class="meta-value">Ph: ${invoice.ledgers.phone}</div>` : ''}
+                ${editablePhone ? `<div class="meta-value">Ph: ${editablePhone}</div>` : ''}
                 ${invoice.ledgers?.address ? `<div class="meta-value">${invoice.ledgers.address}</div>` : ''}
                 ${invoice.ledgers?.gst_number ? `<div class="meta-value">GST: ${invoice.ledgers.gst_number}</div>` : ''}
               </div>
@@ -196,7 +198,19 @@ export default function InvoicePreview({ route, navigation }) {
             <View style={styles.metaCol}>
               <Text style={styles.metaLabel}>Billed To:</Text>
               <Text style={styles.metaValueBold}>{invoice.ledgers?.name}</Text>
-              {invoice.ledgers?.phone && <Text style={styles.metaValue}>Ph: {invoice.ledgers.phone}</Text>}
+              
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
+                <Text style={{color: '#888', fontSize: 12, marginRight: 5}}>Ph:</Text>
+                <TextInput 
+                  style={styles.inlineInput} 
+                  value={editablePhone} 
+                  onChangeText={setEditablePhone} 
+                  placeholder="Enter Phone Number"
+                  placeholderTextColor="#AAA"
+                  keyboardType="phone-pad"
+                />
+              </View>
+
               {invoice.ledgers?.address && <Text style={styles.metaValue}>{invoice.ledgers.address}</Text>}
               {invoice.ledgers?.gst_number && <Text style={styles.metaValue}>GST: {invoice.ledgers.gst_number}</Text>}
             </View>
@@ -274,6 +288,7 @@ const styles = StyleSheet.create({
   metaLabel: { color: '#888', fontSize: 12, marginBottom: 5 },
   metaValueBold: { color: '#333', fontSize: 16, fontWeight: 'bold', marginBottom: 3 },
   metaValue: { color: '#555', fontSize: 14 },
+  inlineInput: { color: theme.colors.primary, fontSize: 14, fontWeight: 'bold', borderBottomWidth: 1, borderBottomColor: theme.colors.primary + '50', padding: 0, margin: 0, minWidth: 100 },
   
   table: { borderTopWidth: 1, borderTopColor: '#EEE', marginBottom: 30 },
   th: { flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EEE', backgroundColor: '#F9F9F9' },
