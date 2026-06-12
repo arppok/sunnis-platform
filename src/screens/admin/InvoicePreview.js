@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
-import { ArrowLeft, Printer } from 'lucide-react-native';
+import { ArrowLeft, Printer, Share2 } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 export default function InvoicePreview({ route, navigation }) {
   const { invoiceId } = route.params || {};
@@ -46,6 +48,120 @@ export default function InvoicePreview({ route, navigation }) {
   const dateStr = new Date(invoice.created_at).toLocaleDateString();
   const timeStr = new Date(invoice.created_at).toLocaleTimeString();
 
+  const generateAndSharePDF = async () => {
+    try {
+      const html = `
+        <html>
+          <head>
+            <style>
+              body { font-family: 'Helvetica', 'Arial', sans-serif; padding: 40px; color: #333; }
+              .header { display: flex; justify-content: space-between; border-bottom: 2px solid #EEE; padding-bottom: 20px; margin-bottom: 20px; }
+              .company-name { font-size: 24px; font-weight: bold; }
+              .company-details { font-size: 14px; color: #666; }
+              .inv-title { font-size: 24px; font-weight: bold; color: ${theme.colors.primary}; letter-spacing: 2px; }
+              .inv-no { font-size: 16px; font-weight: bold; margin-top: 5px; }
+              .meta { display: flex; justify-content: space-between; margin-bottom: 30px; }
+              .meta-col { flex: 1; }
+              .meta-label { color: #888; font-size: 14px; margin-bottom: 5px; }
+              .meta-value-bold { font-size: 18px; font-weight: bold; margin-bottom: 3px; }
+              .meta-value { font-size: 16px; color: #555; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+              th, td { padding: 12px; text-align: left; border-bottom: 1px solid #EEE; }
+              th { background-color: #F9F9F9; font-weight: bold; }
+              .text-center { text-align: center; }
+              .text-right { text-align: right; }
+              .totals { display: flex; flex-direction: column; align-items: flex-end; }
+              .total-row { display: flex; justify-content: space-between; width: 250px; margin-bottom: 8px; font-size: 16px; }
+              .grand-total { border-top: 2px solid #EEE; padding-top: 10px; margin-top: 10px; font-size: 20px; font-weight: bold; color: ${theme.colors.primary}; }
+              .footer { border-top: 1px solid #EEE; padding-top: 20px; margin-top: 40px; display: flex; justify-content: space-between; color: #888; font-size: 14px; font-style: italic; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div>
+                <div class="company-name">SUNNIS SPICES</div>
+                <div class="company-details">123 Factory Lane, Industrial Area</div>
+                <div class="company-details">GSTIN: 29ABCDE1234F1Z5</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="inv-title">TAX INVOICE</div>
+                <div class="inv-no">${invoice.invoice_number}</div>
+              </div>
+            </div>
+            
+            <div class="meta">
+              <div class="meta-col">
+                <div class="meta-label">Billed To:</div>
+                <div class="meta-value-bold">${invoice.ledgers?.name}</div>
+                ${invoice.ledgers?.phone ? `<div class="meta-value">Ph: ${invoice.ledgers.phone}</div>` : ''}
+                ${invoice.ledgers?.address ? `<div class="meta-value">${invoice.ledgers.address}</div>` : ''}
+                ${invoice.ledgers?.gst_number ? `<div class="meta-value">GST: ${invoice.ledgers.gst_number}</div>` : ''}
+              </div>
+              <div class="meta-col" style="text-align: right;">
+                <div class="meta-label">Invoice Date:</div>
+                <div class="meta-value-bold">${dateStr}</div>
+                <div class="meta-value">${timeStr}</div>
+              </div>
+            </div>
+
+            <table>
+              <tr>
+                <th>Item Description</th>
+                <th class="text-center">Qty</th>
+                <th class="text-right">Rate</th>
+                <th class="text-right">Amount</th>
+              </tr>
+              ${invoice.invoice_items?.map(item => `
+                <tr>
+                  <td>${item.products?.name}</td>
+                  <td class="text-center">${item.quantity}</td>
+                  <td class="text-right">₹${Number(item.unit_price).toFixed(2)}</td>
+                  <td class="text-right">₹${Number(item.total_price).toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </table>
+
+            <div class="totals">
+              <div class="total-row">
+                <div>Subtotal:</div>
+                <div>₹${Number(invoice.subtotal).toFixed(2)}</div>
+              </div>
+              <div class="total-row">
+                <div>Total Tax:</div>
+                <div>₹${Number(invoice.tax_amount || 0).toFixed(2)}</div>
+              </div>
+              <div class="total-row grand-total">
+                <div>Grand Total:</div>
+                <div>₹${Number(invoice.total_amount).toFixed(2)}</div>
+              </div>
+            </div>
+
+            <div class="footer">
+              <div>Thank you for your business!</div>
+              <div>Authorized Signatory</div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const { uri } = await Print.printToFileAsync({ html });
+      
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Invoice_${invoice.invoice_number}`,
+          UTI: 'com.adobe.pdf'
+        });
+      } else {
+        if(global.alert) alert('Sharing is not available on this device');
+      }
+    } catch (error) {
+      console.error(error);
+      if(global.alert) alert('Failed to generate PDF');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -53,9 +169,9 @@ export default function InvoicePreview({ route, navigation }) {
           <ArrowLeft color={theme.colors.text} size={24} />
         </TouchableOpacity>
         <Text style={styles.title}>Invoice Preview</Text>
-        <TouchableOpacity style={styles.printBtn} onPress={() => global.print && window.print()}>
-          <Printer color="#FFF" size={20} />
-          <Text style={{color: '#FFF', marginLeft: 8, fontWeight: 'bold'}}>Print</Text>
+        <TouchableOpacity style={styles.printBtn} onPress={generateAndSharePDF}>
+          <Share2 color="#FFF" size={20} />
+          <Text style={{color: '#FFF', marginLeft: 8, fontWeight: 'bold'}}>Share PDF</Text>
         </TouchableOpacity>
       </View>
 
